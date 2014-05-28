@@ -6,7 +6,6 @@ import sys
 import json
 import sqlite3
 import argparse
-import pymongo
 
 class NutrientDB:
 	"""Parses USDA flat files and converts them into an sqlite database"""
@@ -119,7 +118,7 @@ class NutrientDB:
 
 			# Has user passed info to insert into mongo collection
 			if (mongo_client and mongo_db and mongo_collection):
-				print "Adding to mongo food#: " +  str(document['meta']['ndb_no'])
+				print('Adding to mongo food#: ' +  str(document['meta']['ndb_no']))
 
 				# Get refrence to colleciton we want to add the documents to
 				collection = mongo_client[mongo_db][mongo_collection]
@@ -127,7 +126,7 @@ class NutrientDB:
 				# Upsert document into collection 
 				collection.update({'meta.ndb_no': document['meta']['ndb_no']}, document, upsert=True)
 			else:
-				print json.dumps(document)
+				print(json.dumps(document))
 
 	def query_gramweight(self, ndb_no):	
 		'''Query the nutrient db for gram weight info based on the food's unique ndb number'''
@@ -307,10 +306,6 @@ def main():
 	parser.add_argument('-db', '--database', dest='database', help='The name of the SQLite file to read/write nutrient info. (default: nutrients.db)', default='nutrients.db')
 	parser.add_argument('-f', '--force', dest='force', action='store_true', help='Whether to force refresh of database file from flat file. If database file already exits and has some data in it we skip flat file parsing.')
 	parser.add_argument('-e', '--export', dest='export', action='store_true', help='Converts nutrient data into json documents and outputs to standard out, each document is seperated by a newline.')
-	parser.add_argument('--mhost', dest='mhost', help='Mongo hostname. Defaults to localhost.', default='localhost')
-	parser.add_argument('--mport', dest='mport', help='Mongo port. Defaults to 27017.', default=27017)
-	parser.add_argument('--mdb', dest='mdb', help='Mongo database to connect to.')
-	parser.add_argument('--mcoll', dest='mcoll', help='Mongo collection to export data to.')
 
 	# Parse the arguments
 	args = vars(parser.parse_args())
@@ -346,9 +341,6 @@ def main():
 	# Export each food item as json document into a mongodb
 	if args['export']:
 		nutrients.convert_to_documents()
-	elif (args['mhost'] and args['mport'] and args['mdb'] and args['mcoll']):
-		# Export documents to mongo instance
-		nutrients.convert_to_documents(mongo_client=pymongo.MongoClient(args['mhost'], int(args['mport'])), mongo_db=args['mdb'], mongo_collection=args['mcoll'])
 
 # Only execute if calling file directly
 if __name__=="__main__":
